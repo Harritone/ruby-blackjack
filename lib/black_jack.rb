@@ -15,7 +15,71 @@ class BlackJack
     @deck.shuffle
     @current_gamer = 'Player'
     @result = ''
+    @player_money = 100
+    @dealer_money = 100
   end
+
+  def start
+    @current_gamer = 'Player'
+    set_bank_and
+    deal
+    puts show_hands
+    player_cards = @player_hand.dealt_cards
+    unless player_cards.first.rank == '10' && player_cards.last.rank == 'Ace' ||
+            player_cards.first.rank == 'Ace' && player_cards.last.rank == '10'
+      puts 'Do you want to hit(1) or to stand(2)?'
+      response = gets.chomp.to_i
+
+      if response == 1
+        puts 'You chose to hit:'
+        hit
+        puts "Player's hand: #{@player_hand}"
+        puts "Dealer's hand: #{@dealer_hand}"
+        puts
+      elsif response == 2
+        puts 'You chose to stand'
+        stand
+        puts "Player's hand: #{@player_hand}"
+        puts "Dealer's hand: #{@dealer_hand}"
+        puts
+      end
+    else
+      stand
+      puts "Player's hand: #{@player_hand}"
+      puts "Dealer's hand: #{@dealer_hand}"
+      puts
+    end
+    take_bank
+  end
+
+  def take_bank
+    set_results
+    @player_money += @bank if @winner == 'Player'
+    @dealer_money += @bank if @winner == 'Dealer'
+    if @winner == 'Tie'
+      @player_money += 20
+      @dealer_money += 20
+    end
+    @bank = 0
+  end
+
+  def ask_again
+    puts
+    check_balance_and_deck
+    puts "Player's money: #{@player_money}"
+    puts "Dealer's money: #{@dealer_money}"
+    puts "Bank: #{@bank}"
+    puts 'Do you want to play another round?'
+    puts 'Yes(1) No(2)'
+    puts
+    response = gets.chomp
+    if response == '1'
+      self.call
+    else
+      exit 0
+    end
+  end
+
 
   def deal
     @player_hand = Hand.new
@@ -39,21 +103,21 @@ class BlackJack
   end
 
   def hit
-      if current_gamer == 'Player'
-        add_new_card @player_hand
-      else
-        add_new_card @dealer_hand
-      end
+    if current_gamer == 'Player'
+      add_new_card @player_hand
+    else
+      add_new_card @dealer_hand
+    end
   end
 
   def stand
-      if current_gamer == 'Player'
-        @current_gamer = 'Dealer'
-        @dealer_hand.dealt_cards.first.show = true
-      end
-      while @dealer_hand.get_value < 17
-        self.hit
-      end
+    if current_gamer == 'Player'
+      @current_gamer = 'Dealer'
+      @dealer_hand.dealt_cards.first.show = true
+    end
+    while @dealer_hand.get_value < 17
+      self.hit
+    end
   end
 
   def show_hands
@@ -76,6 +140,29 @@ class BlackJack
   end
 
   private
+
+  def check_balance_and_deck
+    if @deck.cards.count < 6
+      @deck.replace
+    end
+    if @dealer_money < 20
+      has_no_money('Dealer')
+    elsif @player_money < 20
+      has_no_money('Player')
+    end
+  end
+
+  def has_no_money(staker)
+    puts
+    puts "#{staker} has no money to continue!"
+    exit 0
+  end
+
+  def set_bank
+    @bank = 40
+    @player_money -= 20
+    @dealer_money -= 20
+  end
 
   def add_new_card(hand)
     hand.add_card(@deck.deal_card)
