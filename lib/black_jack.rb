@@ -19,65 +19,34 @@ class BlackJack
     @dealer_money = 100
   end
 
-  def start
-    @current_gamer = 'Player'
-    set_bank_and
-    deal
-    puts show_hands
+  def player_can_take_card?
     player_cards = @player_hand.dealt_cards
-    unless player_cards.first.rank == '10' && player_cards.last.rank == 'Ace' ||
-            player_cards.first.rank == 'Ace' && player_cards.last.rank == '10'
-      puts 'Do you want to hit(1) or to stand(2)?'
-      response = gets.chomp.to_i
+    return false unless player_cards.first.rank == '10' && player_cards.last.rank == 'Ace' ||
+                       player_cards.first.rank == 'Ace' && player_cards.last.rank == '10'
 
-      if response == 1
-        puts 'You chose to hit:'
-        hit
-        puts "Player's hand: #{@player_hand}"
-        puts "Dealer's hand: #{@dealer_hand}"
-        puts
-      elsif response == 2
-        puts 'You chose to stand'
-        stand
-        puts "Player's hand: #{@player_hand}"
-        puts "Dealer's hand: #{@dealer_hand}"
-        puts
-      end
-    else
+    true
+  end
+
+  def handle_move(response)
+    case response
+    when 1
+      puts 'You chose to hit:'
+      hit
+      puts "Player's hand: #{@player_hand}"
+      puts "Dealer's hand: #{@dealer_hand}"
+      puts
+    when 2
+      puts 'You chose to stand'
       stand
+      puts "Player's hand: #{@player_hand}"
+      puts "Dealer's hand: #{@dealer_hand}"
+      puts
+    when 'stand'
       puts "Player's hand: #{@player_hand}"
       puts "Dealer's hand: #{@dealer_hand}"
       puts
     end
     take_bank
-  end
-
-  def take_bank
-    set_results
-    @player_money += @bank if @winner == 'Player'
-    @dealer_money += @bank if @winner == 'Dealer'
-    if @winner == 'Tie'
-      @player_money += 20
-      @dealer_money += 20
-    end
-    @bank = 0
-  end
-
-  def ask_again
-    puts
-    check_balance_and_deck
-    puts "Player's money: #{@player_money}"
-    puts "Dealer's money: #{@dealer_money}"
-    puts "Bank: #{@bank}"
-    puts 'Do you want to play another round?'
-    puts 'Yes(1) No(2)'
-    puts
-    response = gets.chomp
-    if response == '1'
-      self.call
-    else
-      exit 0
-    end
   end
 
 
@@ -124,6 +93,34 @@ class BlackJack
     "Player's hand: #{@player_hand}\nDealer's hand: #{@dealer_hand}"
   end
 
+  def check_deck
+    @deck.replace if @deck.cards.count < 6
+  end
+
+  def check_balance
+    if @dealer_money < 20
+      'Dealer'
+    elsif @player_money < 20
+      'Player'
+    end
+  end
+
+  def show_results
+    case @winner
+    when 'Tie'
+      result = 'There is a tie, bank will be devided equaly.'
+    when 'Player'
+      result =  'Player has won!'
+    when 'Dealer'
+      result =  'Dealer has won!'
+    end
+    result += "\n#{show_hands}"
+    result += "\nPlayer's money: #{@player_money}, Dealer's money: #{@dealer_money}"
+    result
+  end
+
+  private
+
   def set_results
     if player_hand.get_value == dealer_hand.get_value
       @winner = 'Tie'
@@ -139,23 +136,15 @@ class BlackJack
     @dealer_hand.dealt_cards.first.show = true
   end
 
-  private
-
-  def check_balance_and_deck
-    if @deck.cards.count < 6
-      @deck.replace
+  def take_bank
+    set_results
+    @player_money += @bank if @winner == 'Player'
+    @dealer_money += @bank if @winner == 'Dealer'
+    if @winner == 'Tie'
+      @player_money += 20
+      @dealer_money += 20
     end
-    if @dealer_money < 20
-      has_no_money('Dealer')
-    elsif @player_money < 20
-      has_no_money('Player')
-    end
-  end
-
-  def has_no_money(staker)
-    puts
-    puts "#{staker} has no money to continue!"
-    exit 0
+    @bank = 0
   end
 
   def set_bank
