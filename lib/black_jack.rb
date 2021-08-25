@@ -28,25 +28,20 @@ class BlackJack
   end
 
   def handle_move(response)
+    result = ''
     case response
     when 1
-      puts 'You chose to hit:'
+      result += 'You chose to hit:'
       hit
-      puts "Player's hand: #{@player_hand}"
-      puts "Dealer's hand: #{@dealer_hand}"
-      puts
     when 2
-      puts 'You chose to stand'
+      result += 'You chose to stand'
       stand
-      puts "Player's hand: #{@player_hand}"
-      puts "Dealer's hand: #{@dealer_hand}"
-      puts
-    when 'stand'
-      puts "Player's hand: #{@player_hand}"
-      puts "Dealer's hand: #{@dealer_hand}"
-      puts
     end
+
+    result += "\nPlayer's hand: #{@player_hand}"
+    result += "\nDealer's hand: #{@dealer_hand}"
     take_bank
+    result
   end
 
 

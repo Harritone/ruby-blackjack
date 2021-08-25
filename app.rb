@@ -14,6 +14,7 @@ class App
     @game.deal
     puts @game.show_hands
     response = ask_move
+    puts @game.handle_move(response)
     @game.handle_move(response)
     puts @game.show_results
     @game.ask_again
