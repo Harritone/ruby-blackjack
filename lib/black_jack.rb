@@ -2,25 +2,23 @@ require_relative 'deck'
 require_relative 'hand'
 
 class BlackJack
-  attr_reader :player_hand, :dealer_hand, :playing, :deck, :winner
-  attr_accessor :current_gamer, :result
+  attr_reader :player, :dealer, :playing, :deck, :winner
+attr_accessor :current_gamer, :result
 
   def initialize(suits, ranks)
-    @player_hand = nil
-    @dealer_hand = nil
-    @suits = suits
-    @ranks = ranks
+    @player = nil
+    @dealer = nil
     @winner = ''
     @deck = Deck.new(suits, ranks)
     @deck.shuffle
-    @current_gamer = 'Player'
+    @current_gamer = @player
     @result = ''
     @player_money = 100
     @dealer_money = 100
   end
 
   def player_can_take_card?
-    player_cards = @player_hand.dealt_cards
+    player_cards = @player.dealt_cards
     return false unless player_cards.first.rank == '10' && player_cards.last.rank == 'Ace' ||
                        player_cards.first.rank == 'Ace' && player_cards.last.rank == '10'
 
@@ -28,64 +26,64 @@ class BlackJack
   end
 
   def handle_move(response)
-    result = ''
+    report = ''
     case response
     when 1
-      result += 'You chose to hit:'
+      report += 'You chose to hit:'
       hit
     when 2
-      result += 'You chose to stand'
+      report += 'You chose to stand'
       stand
     end
 
-    result += "\nPlayer's hand: #{@player_hand}"
-    result += "\nDealer's hand: #{@dealer_hand}"
+    report += "\nPlayer's hand: #{@player}"
+    report += "\nDealer's hand: #{@dealer}"
     take_bank
-    result
+    report
   end
 
 
   def deal
-    @player_hand = Hand.new
-    @dealer_hand = Hand.new
+    @player = Player.new
+    @dealer = Dealer.new
 
     2.times do
-      dealer_hand.add_card(@deck.deal_card)
-      player_hand.add_card(@deck.deal_card)
+      @dealer.add_card(@deck.deal_card)
+      @player.add_card(@deck.deal_card)
     end
-    dealer_hand.dealt_cards.first.show = false
+    @dealer.dealt_cards.first.show = false
     valuess_of_ten = %w[10 Jack Queen King]
 
-    player_cards = player_hand.dealt_cards
+    player_cards = @player.dealt_cards
     if valuess_of_ten.include?(player_cards.first.rank) &&
        player_cards.last.rank == 'Ace' ||
        player_cards.first.rank == 'Ace' &&
        valuess_of_ten.include?(player_cards.last.rank)
 
-      @current_gamer = 'Dealer'
+      @current_gamer = @dealer
     end
   end
 
   def hit
-    if current_gamer == 'Player'
-      add_new_card @player_hand
+    if current_gamer == @player
+      add_new_card @player
     else
-      add_new_card @dealer_hand
+      add_new_card @dealer
     end
   end
 
   def stand
-    if current_gamer == 'Player'
-      @current_gamer = 'Dealer'
-      @dealer_hand.dealt_cards.first.show = true
+    if @current_gamer == @player
+      @current_gamer = @dealer
+      @dealer.dealt_cards.first.show = true
     end
-    while @dealer_hand.get_value < 17
+    while @dealer.get_value < 17
       self.hit
     end
   end
 
   def show_hands
-    "Player's hand: #{@player_hand}\nDealer's hand: #{@dealer_hand}"
+    "Player's hand: #{@player}\nDealer's hand: #{@dealer}"
   end
 
   def check_deck
@@ -117,18 +115,18 @@ class BlackJack
   private
 
   def set_results
-    if player_hand.get_value == dealer_hand.get_value
+    if @player.get_value == @dealer.get_value
       @winner = 'Tie'
-    elsif player_hand.get_value > 21
+    elsif @player.get_value > 21
       @winner = 'Dealer'
-    elsif dealer_hand.get_value > 21
+    elsif @dealer.get_value > 21
       @winner = 'Player'
-    elsif player_hand.get_value > dealer_hand.get_value
+    elsif @player.get_value > dealer.get_value
       @winner = 'Player'
     else
       @winner = 'Dealer'
     end
-    @dealer_hand.dealt_cards.first.show = true
+    @dealer.dealt_cards.first.show = true
   end
 
   def take_bank
